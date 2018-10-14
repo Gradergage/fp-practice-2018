@@ -27,26 +27,38 @@ infixl 5 |-|
 infixl 6 |*|
 
 
-solveTerm (IntConstant l) (IntConstant r) op  = case op of Sum -> IntConstant(l+r)
-                                                           Diff -> IntConstant(l-r)
-                                                           Mult -> IntConstant(l*r)
-solveTerm l r @(IntConstant rhv) op  = BinaryTerm l r op
-solveTerm l @(IntConstant lhv) r op  = BinaryTerm l r op
+solveTerm (IntConstant l) (IntConstant r) op  = case op of Sum -> IntConstant(l + r)
+                                                           Diff -> IntConstant(l - r)
+                                                           Mult -> IntConstant(l * r)
+
+solveTerm l r @(IntConstant rhv) op | rhv == 0 = case op of Mult -> IntConstant(0)
+                                                            otherwise -> l
+                                    | rhv == 1 = case op of Mult -> l
+                                                            otherwise -> BinaryTerm l r op
+                                    | otherwise = BinaryTerm l r op
+
+
+solveTerm l @(IntConstant lhv) r op | lhv == 0 = case op of Sum -> r
+                                                            Diff -> BinaryTerm l r op
+                                                            Mult -> IntConstant(0)
+                                    | lhv == 1 = case op of Mult -> r
+                                                            otherwise -> BinaryTerm l r op
+                                    | otherwise = BinaryTerm l r op
 solveTerm l r op = BinaryTerm l r op
 
 
 -- Заменить переменную `varName` на `replacement`
 -- во всём выражении `expression`
 replaceVar :: String -> Term -> Term -> Term
-replaceVar varName replacement expression @(BinaryTerm l r op) = 
+replaceVar varName replacement (BinaryTerm l r op) = 
     let recReplaceVar = replaceVar varName replacement in
     BinaryTerm (recReplaceVar l) (recReplaceVar r) op
-replaceVar varName replacement expression @(Variable v) | v == varName = replacement
+replaceVar varName replacement (Variable v) | v == varName = replacement
                                                         | otherwise = Variable v
 replaceVar varName replacement expression = expression
 
 -- Посчитать значение выражения `Term`
 -- если оно состоит только из констант
 evaluate :: Term -> Term
-evaluate expression @(BinaryTerm l r op) = solveTerm (evaluate l) (evaluate r) op
+evaluate (BinaryTerm l r op) = solveTerm (evaluate l) (evaluate r) op
 evaluate expression = expression

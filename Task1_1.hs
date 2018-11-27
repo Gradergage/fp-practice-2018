@@ -54,7 +54,7 @@ replaceVar varName replacement (BinaryTerm l r op) =
     let recReplaceVar = replaceVar varName replacement in
     BinaryTerm (recReplaceVar l) (recReplaceVar r) op
 replaceVar varName replacement (Variable v) | v == varName = replacement
-                                                        | otherwise = Variable v
+                                            | otherwise = Variable v
 replaceVar varName replacement expression = expression
 
 -- Посчитать значение выражения `Term`

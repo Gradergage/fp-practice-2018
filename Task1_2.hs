@@ -12,7 +12,7 @@ taylorElement x n t = if t then (((-1) ** n) * (x ** (2 * n + 1))) / factorial(2
 --false - cos, true - sin
 taylorRecursion :: Double -> Double -> Bool -> Double
 taylorRecursion  x n t | n == -1 = 0
-          | otherwise = (taylorElement x n t) + (taylorRecursion  x (n - 1) t)
+                       | otherwise = (taylorElement x n t) + (taylorRecursion  x (n - 1) t)
 
 absXY x y | (abs x) > (abs y) = (abs x) - (abs y)
           | (abs x) <= (abs y) = (abs y) - (abs x)
@@ -27,12 +27,12 @@ frac x y = absXY (x / y) (fromIntegral (floor (x / y)))
 --10*pi, то значение не пройдет корректную конвертацию из-за того что операции с pi округляются внутри разрядной сетки,
 --поэтому функции sin и cos работают с приближенными значениями углов в заданных пределах
 convertArgument :: Double -> Double
-convertArgument x |  x > 0 && x >= (2 * pi) = convertArgument (x - 2 * pi)
-                     |  x < 0 && x < (-(2 * pi))= convertArgument (x + 2 * pi)
-                     |  x > 0 && x < (2 * pi) && x > (pi) = x - 2 * pi
-                     |  x < 0 && x > (-2 * pi) && x < (-pi) = x + 2 * pi
-                     |  x == 0 = 0
-                     | otherwise = x
+convertArgument x | x > 0 && x >= (2 * pi) = convertArgument (x - 2 * pi)
+                  | x < 0 && x < (-(2 * pi)) = convertArgument (x + 2 * pi)
+                  | x > 0 && x < (2 * pi) && x > (pi) = x - 2 * pi
+                  | x < 0 && x > (-2 * pi) && x < (-pi) = x + 2 * pi
+                  | x == 0 = 0
+                  | otherwise = x
 
 -- синус числа (формула Тейлора)
 sin :: Double -> Double
@@ -59,21 +59,23 @@ doesSquareBetweenExist from to = ((floor (sqrt (fromIntegral (to - 1)))) - (ceil
 -- вискокосных годов?
 isDateCorrect :: Integer -> Integer -> Integer -> Bool
 isDateCorrect day month year | month < 1 || month > 12 || day < 1 || year == 0 = False
-  | month == 2 = day < 29 || (leap && day == 29)
-  | month `elem` [1, 3, 5, 7, 8, 10, 12] = day < 32
-  | otherwise = day < 31
-  where
-    leap = (year' `mod` 4 == 0 && year' `mod` 100 /= 0) || year' `mod` 400 == 0
-    year' | year > 0     = year
-          | otherwise = year + 1
+                             | month == 2 = day < 29 || (leap && day == 29)
+                             | month `elem` [1, 3, 5, 7, 8, 10, 12] = day < 32
+                             | otherwise = day < 31
+                             where 
+                                leap = (year' `mod` 4 == 0 && year' `mod` 100 /= 0) || year' `mod` 400 == 0
+                                year' | year > 0     = year
+                                      | otherwise = year + 1
 
 -- возведение числа в степень, duh
 -- готовые функции и плавающую арифметику использовать нельзя
 pow :: Integer -> Integer -> Integer
 pow x y = if y == 0 then 1
-               else if y `mod` 2 == 1 then
-                    x * (pow x (y - 1))
-                    else ((pow x (y `div` 2)) * (pow x (y `div` 2)))
+          else  if y == 2 then
+                x * x
+                else  if y `mod` 2 == 1 then
+                      x * (pow x (y - 1))
+                      else (pow (pow x (y `div` 2)) 2)
 --pow x y = if y == 0 then 1
 --               else x * (pow x (y - 1))
 

@@ -1,19 +1,19 @@
 module Task3_2 where
 
 import Todo(todo)
-import Task2_2
-
 data ReverseList a = RNil | RCons (ReverseList a) a
 
 -- Реализуйте классы Eq, Ord, Show, Monoid, Functor
+
+instance Foldable ReverseList where
+    foldr f z RNil = z
+    foldr f z (RCons t h) = f h (foldr f z t)
+
 rlistToList :: ReverseList a -> [a]
-rlistToList RNil = []
-rlistToList (RCons t h) = h : (rlistToList t)
+rlistToList = foldl (\t h -> h:t) []
 
 listToRList :: [a] -> ReverseList a
-listToRList [] = RNil
-listToRList (h : t) = RCons (listToRList t) h 
-
+listToRList = foldl (\t h -> RCons t h) RNil
 
 instance (Eq a) => Eq (ReverseList a) where
     (==) RNil RNil = True
@@ -31,12 +31,11 @@ instance (Ord a) => Ord (ReverseList a) where
                                          | otherwise = t `compare` t'
 
 instance (Show a) => Show (ReverseList a) where
-    show RNil = "[]"
-    show a = show (rlistToList a)
+    show a = "[" ++ showBody a ++ "]" where
+                    showBody RNil = ""
+                    showBody (RCons RNil h) = show h
+                    showBody (RCons t h) = showBody t ++ "," ++ show h
 
-instance Foldable ReverseList where
-    foldr f z RNil = z
-    foldr f z (RCons t h) = f x (foldr f z t)
 
 instance Semigroup (ReverseList a) where
     (<>) t t' = foldr (\x s -> RCons s x) t' t

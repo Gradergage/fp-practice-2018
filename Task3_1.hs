@@ -28,11 +28,15 @@ fromInteger num | num > 0 = Succ (fromInteger (num - 1))
                 | otherwise = Zero
 
 instance Eq WeirdPeanoNumber where
-    (==) Zero Zero = True
-    (==) Zero _ = False
-    (==) _ Zero = False
-    (==) a b = (toInteger a) == (toInteger b)
-    (/=) a b = (toInteger a) /= (toInteger b)
+    (==) a b = cmpr (normalize a) (normalize b) where
+               cmpr Zero Zero = True
+               cmpr Zero _ = False
+               cmpr _ Zero = False
+               cmpr (Succ a) (Pred b) = False
+               cmpr (Pred a) (Succ b) = False
+               cmpr (Succ a) (Succ b) = cmpr a b
+               cmpr (Pred a) (Pred b) = cmpr a b
+    (/=) a b = not (a == b)
 
 instance Show WeirdPeanoNumber where
     show Zero = "Zero"
@@ -63,8 +67,8 @@ instance Num WeirdPeanoNumber where
     (*) _ Zero = Zero
     (*) Zero _ = Zero
     (*) a b = fromInteger (toInteger a * toInteger b)
-        negate a = (Pred Zero) * a
-        abs a = let num' = normalize a in
+    negate a = (Pred Zero) * a
+    abs a = let num' = normalize a in
             if (toInteger num') > 0 then num'
             else fromInteger((toInteger num') * (-1))
   

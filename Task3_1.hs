@@ -1,7 +1,6 @@
 module Task3_1 where
 
 import Task2_2
-import Prelude hiding (toInteger, fromInteger)
 data WeirdPeanoNumber = Zero | Succ WeirdPeanoNumber | Pred WeirdPeanoNumber
 
 -- Реализуйте все классы типов, которым должны отвечать целые числа
@@ -14,18 +13,18 @@ normalize num = normalize' num Zero where
                 normalize' (Pred n) acc = normalize' n (Pred acc)
                 normalize' Zero acc = acc
 
-toInteger :: WeirdPeanoNumber -> Int
-toInteger num = 
+myToInteger :: WeirdPeanoNumber -> Int
+myToInteger num = 
         let num' = normalize num in
-                toInteger' num' 0 where
-                toInteger' Zero a = a
-                toInteger' (Succ n) a = toInteger' n (a + 1)
-                toInteger' (Pred n) a = toInteger' n (a - 1)
+                myToInteger' num' 0 where
+                myToInteger' Zero a = a
+                myToInteger' (Succ n) a = myToInteger' n (a + 1)
+                myToInteger' (Pred n) a = myToInteger' n (a - 1)
 
-fromInteger :: Int -> WeirdPeanoNumber
-fromInteger num | num > 0 = Succ (fromInteger (num - 1))
-                | num < 0 = Pred (fromInteger (num + 1))
-                | otherwise = Zero
+myFromInteger :: Int -> WeirdPeanoNumber
+myFromInteger num | num > 0 = Succ (myFromInteger (num - 1))
+                  | num < 0 = Pred (myFromInteger (num + 1))
+                  | otherwise = Zero
 
 instance Eq WeirdPeanoNumber where
     (==) a b = cmpr (normalize a) (normalize b) where
@@ -44,31 +43,58 @@ instance Show WeirdPeanoNumber where
     show (Pred a) = "(Pred " ++ show a ++ ")"
 
 instance Enum WeirdPeanoNumber where
-    toEnum x = fromInteger x
-    fromEnum x = toInteger x
+    toEnum x = myFromInteger x
+    fromEnum x = myToInteger x
 
 instance Bounded WeirdPeanoNumber where
-    minBound = fromInteger minBound
-    maxBound = fromInteger maxBound
+    minBound = myFromInteger minBound
+    maxBound = myFromInteger maxBound
 
 instance Ord WeirdPeanoNumber where
     a `compare` b | a == b = EQ
-                  | toInteger a > toInteger b = GT
+                  | myToInteger a > myToInteger b = GT
                   | otherwise = LT
-    (<) a b = toInteger a < toInteger b
-    (<=) a b = toInteger a <= toInteger b
+    (<) a b = myToInteger a < myToInteger b
+    (<=) a b = myToInteger a <= myToInteger b
     (>) a b = not (a <= b)
     (>=) a b = not (a < b)
 
 instance Num WeirdPeanoNumber where
     (+) a Zero = a
     (+) Zero b = b 
-    (+) a b = fromInteger (toInteger a + toInteger b)
+    (+) a b = myFromInteger (myToInteger a + myToInteger b)
     (*) _ Zero = Zero
     (*) Zero _ = Zero
-    (*) a b = fromInteger (toInteger a * toInteger b)
+    (*) a b = myFromInteger (myToInteger a * myToInteger b)
     negate a = (Pred Zero) * a
     abs a = let num' = normalize a in
-            if (toInteger num') > 0 then num'
-            else fromInteger((toInteger num') * (-1))
-  
+            if (myToInteger num') > 0 then num'
+            else myFromInteger((myToInteger num') * (-1))
+
+    signum Zero = Zero
+    signum (Succ (Pred a)) = signum a
+    signum (Pred (Succ a)) = signum a
+    signum (Succ a) = Succ Zero
+    signum (Pred a) = Pred Zero
+
+    fromInteger = myFromInteger . fromIntegral
+
+instance Real WeirdPeanoNumber where
+    toRational = toRational . myToInteger
+
+quot' a b = if (a - b >= Zero)
+                then (quot (a - b)  b) + 1 
+                else Zero
+rem' a b = if (a - b >= Zero)
+                then rem' (a - b) b
+                else a
+
+instance Integral WeirdPeanoNumber where
+    toInteger Zero = 0
+    toInteger (Succ a) = toInteger a + 1
+    toInteger (Pred a) = toInteger a - 1
+    quotRem a b = let sign = signum a * signum b
+                      a' = abs a
+                      b' = abs b
+                      in if(b == Zero) then error "Can't divide zero"
+                                       else (sign *(quot' a' b'), sign * (rem' a' b'))

@@ -1,16 +1,22 @@
 module Task3_2 where
-
+import Prelude hiding (foldr, foldl)
 import Todo(todo)
+
 data ReverseList a = RNil | RCons (ReverseList a) a
 
 -- Реализуйте классы Eq, Ord, Show, Monoid, Functor
 
-instance Foldable ReverseList where
-    foldr f z RNil = z
-    foldr f z (RCons t h) = f h (foldr f z t)
+foldr f z RNil = z
+foldr f z (RCons t h) = f h (foldr f z t)
+
+foldl f z [] = z
+foldl f z (h:t) = foldl f (f z h) t
+
+foldl' f z RNil = z
+foldl' f z (RCons t h) = foldl' f (f z h) t
 
 rlistToList :: ReverseList a -> [a]
-rlistToList = foldl (\t h -> h:t) []
+rlistToList = foldl' (\t h -> h:t) []
 
 listToRList :: [a] -> ReverseList a
 listToRList = foldl (\t h -> RCons t h) RNil

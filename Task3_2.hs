@@ -6,20 +6,15 @@ data ReverseList a = RNil | RCons (ReverseList a) a
 
 -- Реализуйте классы Eq, Ord, Show, Monoid, Functor
 
-foldr f z RNil = z
-foldr f z (RCons t h) = f h (foldr f z t)
-
-foldl f z [] = z
-foldl f z (h:t) = foldl f (f z h) t
-
-foldl' f z RNil = z
-foldl' f z (RCons t h) = foldl' f (f z h) t
-
 rlistToList :: ReverseList a -> [a]
-rlistToList = foldl' (\t h -> h:t) []
+rlistToList a = rlistToList' a [] where
+                rlistToList' RNil lst = lst;
+                rlistToList' (RCons t h) lst = rlistToList' t (h:lst)
 
 listToRList :: [a] -> ReverseList a
-listToRList = foldl (\t h -> RCons t h) RNil
+listToRList a = listToRList' a RNil where
+                listToRList' [] lst = lst;
+                listToRList' (h:t) lst = listToRList' t (RCons lst h)
 
 instance (Eq a) => Eq (ReverseList a) where
     (==) RNil RNil = True
@@ -44,7 +39,9 @@ instance (Show a) => Show (ReverseList a) where
 
 
 instance Semigroup (ReverseList a) where
-    (<>) t t' = foldr (\x s -> RCons s x) t' t
+    (<>) t t' = sgroup t' t where
+                sgroup RNil lst = lst;
+                sgroup (RCons t h) lst = RCons (sgroup t lst) h
 
 instance Monoid (ReverseList a) where
     mempty = RNil
